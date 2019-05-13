@@ -2,7 +2,7 @@
 # Default
 tomcat_admin_user: admin
 tomcat_admin_password: welcome1
-tomcat_install_files: apache-tomcat-9.0.19.zip
+tomcat_install_files: apache-tomcat-9.0.19.tar.gz
 tomcat_tmp_install_dir: /tmp/ansible-tomcat-install
 tomcat_user: tomcat
 tomcat_group: tomcat
