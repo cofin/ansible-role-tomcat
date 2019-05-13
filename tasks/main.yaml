@@ -1,0 +1,95 @@
+---
+# This role installs a specific version of tomcat to OEL servers
+- name: Check for Tomcat installation files
+  local_action: stat path="{{ role_path }}/files/{{ tomcat_install_files }}"
+  become: false
+  register: tomcat_installer_exists
+
+- name: Tomcat installation files are missing
+  fail:
+    msg="Installation files requred for Tomcat are missing.  File '{{ tomcat_install_files }}' not found at '{{ role_path }}/files/'"
+  when: tomcat_installer_exists.stat.exists == False
+  tags:
+    - check
+    - install
+
+- name: Creating Tomcat group
+  group:
+    name="{{ tomcat_group }}"
+    state=present
+
+- name: Creating Tomcat user
+  user:
+    name="{{ tomcat_user }}"
+    group="{{ tomcat_group }}"
+    uid="{{ tomcat_uid }}"
+    gid="{{ tomcat_gid }}"
+    state=present
+    shell="/bin/bash"
+    home="{{ tomcat_home_dir }}"
+
+- name: Installing dependencies
+  yum:
+    name="{{ tomcat_yum_packages }}"
+    state=present
+  when: ansible_os_family == 'RedHat'
+
+- name: creating base directory
+  file:
+    path="{{ tomcat_base_dir }}"
+    state=directory
+    owner="{{ tomcat_user }}"
+    group="{{ tomcat_group }}"
+
+- name: creating temporary directory
+  file:
+    path="{{ tomcat_tmp_install_dir }}"
+    state=directory
+    owner="{{ tomcat_user }}"
+    group="{{ tomcat_group }}"
+
+- name: Check for an existing installation of Tomcat
+  stat:
+    path: "{{ tomcat_base_dir }}/bin/startup.sh"
+  register: existing_tomcat_install
+
+- name: Uploading Tomcat Installation Files
+  unarchive:
+    src="files/{{ tomcat_install_files }}"
+    dest="{{ tomcat_tmp_install_dir }}"
+  when: existing_tomcat_install.stat.exists == False
+
+- name: Move files into place
+  unarchive:
+    src="files/{{ tomcat_install_files }}"
+    dest="{{ tomcat_tmp_install_dir }}"
+  when: existing_tomcat_install.stat.exists == False
+
+- name: Move server.xml customized config
+  template:
+    src: "{{ role_path }}/templates/server.xml.j2"
+    dest: "{{ tomcat_base_dir }}/conf/server.xml"
+    owner: tomcat
+    group: tomcat
+    mode: 0770
+
+- name: Create tomcat users
+  template:
+    src: "{{ role_path }}/templates/tomcat-users.xml.j2"
+    dest: "{{ tomcat_base_dir }}/conf/tomcat-users.xml"
+    owner: tomcat
+    group: tomcat
+    mode: 0770
+
+- name: Copy init.d scripts
+  template:
+    src: "{{ role_path }}/templates/tomcat.sh.j2"
+    dest: /etc/init.d/tomcat
+    owner: root
+    group: root
+    mode: 0740
+
+- name: set script to start at boot
+  shell: "chkconfig --add tomcat && chkconfig --level 2345 tomcat on"
+  become: yes
+  become_user: root
