@@ -23,7 +23,6 @@
     name="{{ tomcat_user }}"
     group="{{ tomcat_group }}"
     uid="{{ tomcat_uid }}"
-    gid="{{ tomcat_gid }}"
     state=present
     shell="/bin/bash"
     home="{{ tomcat_home_dir }}"
