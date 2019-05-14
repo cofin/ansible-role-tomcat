@@ -68,16 +68,16 @@
   template:
     src: "{{ role_path }}/templates/server.xml.j2"
     dest: "{{ tomcat_base_dir }}/conf/server.xml"
-    owner: tomcat
-    group: tomcat
+    owner: "{{ tomcat_user }}"
+    group: "{{ tomcat_group }}"
     mode: 0770
 
 - name: Create tomcat users
   template:
     src: "{{ role_path }}/templates/tomcat-users.xml.j2"
     dest: "{{ tomcat_base_dir }}/conf/tomcat-users.xml"
-    owner: tomcat
-    group: tomcat
+    owner: "{{ tomcat_user }}"
+    group: "{{ tomcat_group }}"
     mode: 0770
 
 - name: Copy init.d scripts
