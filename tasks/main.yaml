@@ -58,12 +58,6 @@
     dest="{{ tomcat_tmp_install_dir }}"
   when: existing_tomcat_install.stat.exists == False
 
-- name: Move files into place
-  unarchive:
-    src="files/{{ tomcat_install_files }}"
-    dest="{{ tomcat_tmp_install_dir }}"
-  when: existing_tomcat_install.stat.exists == False
-
 - name: Move server.xml customized config
   template:
     src: "{{ role_path }}/templates/server.xml.j2"
